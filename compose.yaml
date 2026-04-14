@@ -1,0 +1,7 @@
+﻿services:
+  fixmycity:
+    image: fixmycity
+    build:
+      context: .
+      dockerfile: Dockerfile
+
