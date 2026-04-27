@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace fixmycity.Controllers;
 
 [ApiController]
-[Route("city/testing")]
-public class TestingController : ControllerBase
+public class TestingController : BaseApiController
 {
     [HttpGet("test")]
     public ActionResult<string> Test()
     {
-        return "hello world";
+        var userId = Request.Headers["X-User-Id"];
+        var role = Request.Headers["X-User-Role"];
+
+        return $"hello world | user={userId} | role={role}";
     }
 }
-
