@@ -1,14 +1,9 @@
 using fixmycity.security;
 
-public class UserContextMiddleware
+namespace fixmycity.MiddleWares;
+
+public class UserContextMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public UserContextMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task Invoke(HttpContext context, CurrentUser currentUser)
     {
         var userId = context.Request.Headers["X-User-Id"].ToString();
@@ -24,6 +19,6 @@ public class UserContextMiddleware
         currentUser.Id = userId;
         currentUser.Role = role;
 
-        await _next(context);
+        await next(context);
     }
 }

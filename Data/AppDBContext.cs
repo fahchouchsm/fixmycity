@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using fixmycity.model;
+using fixmycity.models;
 
 namespace fixmycity.data;
 

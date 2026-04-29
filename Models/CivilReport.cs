@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using fixmycity.Enum;
-namespace fixmycity.model;
+namespace fixmycity.models;
 public class CivilReport
 {
     [Key]

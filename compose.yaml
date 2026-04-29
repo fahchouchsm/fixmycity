@@ -1,4 +1,4 @@
-﻿services:
+services:
   fixmycity:
     image: fixmycity
     build:
@@ -11,8 +11,8 @@
       ConnectionStrings__Default: Server=sqlserver,1433;Database=fixmycity;User Id=sa;Password=FixMyCity!123;Encrypt=False;TrustServerCertificate=True
     depends_on:
       - sqlserver
-
-
+    networks:
+      - microservices-network
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
@@ -22,7 +22,10 @@
       - "14333:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
-
+    networks:
+      - microservices-network
 volumes:
   sqlserver_data:
-
+networks:
+  microservices-network:
+    external: true

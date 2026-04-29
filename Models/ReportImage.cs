@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using fixmycity.enums;
-namespace fixmycity.model;
+namespace fixmycity.models;
 public class ReportImage
 {
     [Key]

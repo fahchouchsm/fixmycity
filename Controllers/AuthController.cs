@@ -1,5 +1,5 @@
 using fixmycity.dto.Response;
-using fixmycity.model;
+using fixmycity.models;
 using fixmycity.security;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,8 +7,8 @@ namespace fixmycity.Controllers;
 
 public class AuthController(CurrentUser currentUser) : BaseApiController
 {
-    [HttpGet("test")]
-    public IActionResult Index()
+    [HttpGet("me")]
+    public IActionResult Me()
     {
         User user = new User();
         user.Id = currentUser.Id;

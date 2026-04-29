@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace fixmycity.model;
+namespace fixmycity.models;
 public class User
 {
     [Key]
