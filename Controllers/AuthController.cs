@@ -1,18 +1,20 @@
 using fixmycity.dto.Response;
-using fixmycity.models;
 using fixmycity.security;
+using fixmycity.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace fixmycity.Controllers;
 
-public class AuthController(CurrentUser currentUser) : BaseApiController
+public class AuthController(CurrentUser currentUser, IUserService userService) : BaseApiController
 {
     [HttpGet("me")]
-    public IActionResult Me()
+    public async Task<IActionResult> Me()
     {
-        User user = new User();
-        user.Id = currentUser.Id;
-        user.Role = currentUser.Role;
-        return Ok(new ApiResponseDTO<User>("hello", user));
+        MeResDTO? user = await userService.GetMeAsync(currentUser.Id);
+
+        if (user == null)
+            return NotFound(ApiErrorResponse.Fail("User not found"));
+
+        return Ok(ApiResponse<MeResDTO>.Ok(user));
     }
 }
