@@ -1,7 +1,8 @@
 using fixmycity.dto.Response;
+using fixmycity.DTOs.Req;
 using fixmycity.models;
 using fixmycity.Repositories;
-using Microsoft.AspNetCore.Http.HttpResults;
+using fixmycity.security;
 
 namespace fixmycity.Services;
 
@@ -21,5 +22,19 @@ public class UserService(UserRepository userRepository) : IUserService
         );
         
         return user;
+    }
+
+    public async Task RegisterUser(RegisterDto dto,CurrentUser currentUser)
+    {
+        User user = new User()
+        {
+            Id = currentUser.Id,
+            FirstName = currentUser.name!,
+            LastName = currentUser.lastName!,
+            Email = currentUser.email!,
+            Role = currentUser.Role,
+        };
+
+        await userRepository.RegisterUserAsync(user);
     }
 }

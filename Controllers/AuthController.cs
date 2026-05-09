@@ -1,4 +1,5 @@
 using fixmycity.dto.Response;
+using fixmycity.DTOs.Req;
 using fixmycity.security;
 using fixmycity.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,5 +17,22 @@ public class AuthController(CurrentUser currentUser, IUserService userService) :
             return NotFound(ApiErrorResponse.Fail("User not found"));
 
         return Ok(ApiResponse<MeResDTO>.Ok(user));
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterDto dto) 
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ApiErrorResponse.Fail("Invalid body"));
+
+        if (string.IsNullOrEmpty(currentUser.email) ||
+            string.IsNullOrEmpty(currentUser.name) ||
+            string.IsNullOrEmpty(currentUser.lastName))
+        {
+            return BadRequest();
+        }
+
+        await userService.RegisterUser(dto, currentUser);
+        return Ok(currentUser);
     }
 }

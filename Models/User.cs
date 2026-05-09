@@ -4,19 +4,21 @@ public class User
 {
     [Key]
     [MaxLength(64)]
-    public string Id { get; set; } = null!;
+    public string Id { get; init; } = null!;
 
     [MaxLength(20)]
-    public string Role { get; set; } = null!;
+    public string Role { get; init; } = null!;
 
     [MaxLength(100)]
-    public string? FirstName { get; set; }
+    public required string FirstName { get; init; }
 
     [MaxLength(100)]
-    public string? LastName { get; set; }
+    public required string LastName { get; init; }
+    [MaxLength(255)]
+    public required string Email { get; init; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; } = DateTime.UtcNow;
 
-    public ICollection<CivilReport> Reports { get; set; } = new List<CivilReport>();
-    public ICollection<ReportComment> Comments { get; set; } = new List<ReportComment>();
+    public ICollection<CivilReport> Reports { get; init; } = new List<CivilReport>();
+    public ICollection<ReportComment> Comments { get; init; } = new List<ReportComment>();
 }

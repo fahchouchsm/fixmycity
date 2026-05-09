@@ -12,7 +12,7 @@ using fixmycity.data;
 namespace fixmycity.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260426151245_InitialCreate")]
+    [Migration("20260508194210_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace fixmycity.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("fixmycity.model.CivilReport", b =>
+            modelBuilder.Entity("fixmycity.models.CivilReport", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -65,7 +65,7 @@ namespace fixmycity.Migrations
                     b.ToTable("CivilReports");
                 });
 
-            modelBuilder.Entity("fixmycity.model.ReportComment", b =>
+            modelBuilder.Entity("fixmycity.models.ReportComment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -94,7 +94,7 @@ namespace fixmycity.Migrations
                     b.ToTable("ReportComments");
                 });
 
-            modelBuilder.Entity("fixmycity.model.ReportImage", b =>
+            modelBuilder.Entity("fixmycity.models.ReportImage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -120,7 +120,7 @@ namespace fixmycity.Migrations
                     b.ToTable("ReportImages");
                 });
 
-            modelBuilder.Entity("fixmycity.model.ReportStatusHistory", b =>
+            modelBuilder.Entity("fixmycity.models.ReportStatusHistory", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -151,20 +151,19 @@ namespace fixmycity.Migrations
                     b.ToTable("ReportStatusHistories");
                 });
 
-            modelBuilder.Entity("fixmycity.model.User", b =>
+            modelBuilder.Entity("fixmycity.models.User", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -178,9 +177,9 @@ namespace fixmycity.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("fixmycity.model.CivilReport", b =>
+            modelBuilder.Entity("fixmycity.models.CivilReport", b =>
                 {
-                    b.HasOne("fixmycity.model.User", "User")
+                    b.HasOne("fixmycity.models.User", "User")
                         .WithMany("Reports")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -189,15 +188,15 @@ namespace fixmycity.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("fixmycity.model.ReportComment", b =>
+            modelBuilder.Entity("fixmycity.models.ReportComment", b =>
                 {
-                    b.HasOne("fixmycity.model.CivilReport", "CivilReport")
+                    b.HasOne("fixmycity.models.CivilReport", "CivilReport")
                         .WithMany("Comments")
                         .HasForeignKey("CivilReportId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("fixmycity.model.User", "User")
+                    b.HasOne("fixmycity.models.User", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -208,9 +207,9 @@ namespace fixmycity.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("fixmycity.model.ReportImage", b =>
+            modelBuilder.Entity("fixmycity.models.ReportImage", b =>
                 {
-                    b.HasOne("fixmycity.model.CivilReport", "CivilReport")
+                    b.HasOne("fixmycity.models.CivilReport", "CivilReport")
                         .WithMany("Images")
                         .HasForeignKey("CivilReportId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -219,15 +218,15 @@ namespace fixmycity.Migrations
                     b.Navigation("CivilReport");
                 });
 
-            modelBuilder.Entity("fixmycity.model.ReportStatusHistory", b =>
+            modelBuilder.Entity("fixmycity.models.ReportStatusHistory", b =>
                 {
-                    b.HasOne("fixmycity.model.User", "ChangedByUser")
+                    b.HasOne("fixmycity.models.User", "ChangedByUser")
                         .WithMany()
                         .HasForeignKey("ChangedByUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("fixmycity.model.CivilReport", "CivilReport")
+                    b.HasOne("fixmycity.models.CivilReport", "CivilReport")
                         .WithMany("StatusHistory")
                         .HasForeignKey("CivilReportId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -238,7 +237,7 @@ namespace fixmycity.Migrations
                     b.Navigation("CivilReport");
                 });
 
-            modelBuilder.Entity("fixmycity.model.CivilReport", b =>
+            modelBuilder.Entity("fixmycity.models.CivilReport", b =>
                 {
                     b.Navigation("Comments");
 
@@ -247,7 +246,7 @@ namespace fixmycity.Migrations
                     b.Navigation("StatusHistory");
                 });
 
-            modelBuilder.Entity("fixmycity.model.User", b =>
+            modelBuilder.Entity("fixmycity.models.User", b =>
                 {
                     b.Navigation("Comments");
 

@@ -6,27 +6,22 @@ using fixmycity.Services;
 
 namespace fixmycity.Repositories;
 
-public class UserRepository(AppDbContext dbContext)
+public class UserRepository(AppDbContext db)
 {
     public async Task<T?> GetByIdAsync<T>(
         string id,
         Expression<Func<User, T>> selector)
     {
-        return await dbContext.Users
+        return await db.Users
+            .AsNoTracking()
             .Where(u => u.Id == id)
             .Select(selector)
             .FirstOrDefaultAsync();
     }
 
-    public async Task AddAsync(User user)
+    public async Task RegisterUserAsync(User user)
     {
-        await dbContext.Users.AddAsync(user);
-        await dbContext.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(User user)
-    {
-        dbContext.Users.Remove(user);
-        await dbContext.SaveChangesAsync();
+        await db.Users.AddAsync(user);
+        await db.SaveChangesAsync();
     }
 }
