@@ -1,143 +1,243 @@
-# FixMyCity API
+# FixMyCity
 
-FixMyCity is a .NET 10 REST API for a civic-issue reporting platform. It persists users and the foundations for civil reports, attachments, comments, and report-status history in SQL Server.
+> A backend service for reporting, tracking, and managing civic issues.
 
-At the moment, the exposed API focuses on receiving user identity from an API gateway, registering a user, and retrieving the current user. Report-management endpoints have not been implemented yet.
+FixMyCity is a .NET API that provides the foundation for a platform where citizens can report local problems—such as damaged roads, broken streetlights, or waste collection issues—and follow their resolution. It stores users, reports, media, comments, and report-status history in SQL Server.
 
-## Stack
+> **Project status:** the user-registration and current-user endpoints are implemented. Civil-report endpoints are planned; the underlying data model and database migrations are already in place.
 
-- ASP.NET Core 10 Web API
-- Entity Framework Core 10
-- SQL Server 2022
-- Docker Compose
+## Highlights
 
-## Requirements
+- Built with ASP.NET Core 10 and Entity Framework Core
+- SQL Server persistence with migrations applied automatically at startup
+- Designed to sit behind an authentication gateway
+- Gateway user context is available throughout the request lifecycle
+- Docker Compose setup for local and containerized development
+
+## Technology
+
+| Area | Technology |
+| --- | --- |
+| Framework | ASP.NET Core 10 |
+| Data access | Entity Framework Core 10 |
+| Database | SQL Server 2022 |
+| Containers | Docker and Docker Compose |
+| API specification | OpenAPI (Development environment) |
+
+## Quick start
+
+### Prerequisites
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download/dotnet/10.0)
-- Docker and Docker Compose (recommended for SQL Server)
+- Docker and Docker Compose
 
-## Run locally
-
-1. Start SQL Server:
-
-   ```bash
-   docker compose -f compose.dev.yaml up -d
-   ```
-
-2. Restore, build, and run the API:
-
-   ```bash
-   dotnet restore
-   dotnet run
-   ```
-
-   The development profile listens on `http://localhost:5181`. On startup, pending Entity Framework migrations are applied automatically.
-
-The default development connection string targets `localhost,14333`, which is the host port configured by `compose.dev.yaml`. To use another database, override `ConnectionStrings__Default`:
+### 1. Start SQL Server
 
 ```bash
-ConnectionStrings__Default='Server=localhost,14333;Database=fixmycity;User Id=sa;Password=<your-password>;Encrypt=False;TrustServerCertificate=True' dotnet run
+docker compose -f compose.dev.yaml up -d
 ```
 
-## Run with Docker
+This starts SQL Server at `localhost:14333` and keeps its data in the `sqlserver_data` Docker volume.
 
-The full compose setup runs the API on port `8080` and SQL Server on host port `14333`.
+### 2. Run the API
+
+```bash
+dotnet restore
+dotnet run
+```
+
+The API starts at `http://localhost:5181`. Pending Entity Framework migrations run automatically when the application starts.
+
+### 3. Check the connection
+
+All requests require the user context normally supplied by the authentication gateway:
+
+```bash
+curl http://localhost:5181/api/city/Testing/test \
+  -H 'X-User-Id: citizen-001' \
+  -H 'X-User-Role: citizen'
+```
+
+Expected response:
+
+```text
+hello world | user=citizen-001 | role=citizen
+```
+
+## Running with Docker
+
+The full Docker setup starts the API on port `8080` and SQL Server on port `14333`.
 
 ```bash
 docker network create microservices-network
 docker compose up --build
 ```
 
-`microservices-network` must be created first because the production compose file declares it as an external Docker network.
+The `microservices-network` is external by design, so it must exist before starting the full stack.
 
-## Authentication context
-
-This service expects an upstream gateway to pass the authenticated user in request headers. Every endpoint requires `X-User-Id`; requests without it receive `401 Missing X-User-Id`.
-
-| Header | Purpose | Required by |
-| --- | --- | --- |
-| `X-User-Id` | User identifier | All endpoints |
-| `X-User-Role` | User role | Gateway context |
-| `X-User-Email` | User email | Registration |
-| `X-User-Name` | First name | Registration |
-| `X-User-LastName` | Last name | Registration |
-
-The service currently trusts these gateway headers. Do not expose it directly to untrusted clients without putting a trusted authentication gateway in front of it.
-
-## API
+## API reference
 
 Base path: `/api/city`
 
-### Check gateway context
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/Testing/test` | Confirms that the API receives the gateway user context. |
+| `POST` | `/Auth/register` | Creates a user from the gateway headers. |
+| `GET` | `/Auth/me` | Returns the currently authenticated user. |
 
-`GET /Testing/test`
+In the Development environment, the OpenAPI document is available at:
 
-```bash
-curl http://localhost:5181/api/city/Testing/test \
-  -H 'X-User-Id: user-123' \
-  -H 'X-User-Role: citizen'
+```text
+/openapi/v1.json
 ```
 
-### Register the current user
+### Gateway headers
 
-`POST /Auth/register`
+FixMyCity expects a trusted upstream gateway to authenticate the client and send user details as HTTP headers.
 
-The user data is read from gateway headers; the request body is currently empty.
+| Header | Description | Used by |
+| --- | --- | --- |
+| `X-User-Id` | Unique user identifier | Every endpoint |
+| `X-User-Role` | User role, for example `citizen` | Every endpoint |
+| `X-User-Email` | User email address | Registration |
+| `X-User-Name` | User first name | Registration |
+| `X-User-LastName` | User last name | Registration |
+
+Requests without `X-User-Id` receive `401 Missing X-User-Id`.
+
+> **Security note:** these headers are trusted by the application. Deploy FixMyCity behind a gateway that authenticates requests and removes any client-supplied identity headers before forwarding them.
+
+### Register a user
+
+`POST /api/city/Auth/register`
+
+User details are read from the gateway headers. The current request body is empty.
 
 ```bash
 curl -X POST http://localhost:5181/api/city/Auth/register \
-  -H 'X-User-Id: user-123' \
+  -H 'Content-Type: application/json' \
+  -H 'X-User-Id: citizen-001' \
   -H 'X-User-Role: citizen' \
   -H 'X-User-Email: citizen@example.com' \
   -H 'X-User-Name: Ada' \
   -H 'X-User-LastName: Lovelace' \
-  -H 'Content-Type: application/json' \
   -d '{}'
 ```
 
 ### Get the current user
 
-`GET /Auth/me`
+`GET /api/city/Auth/me`
 
 ```bash
 curl http://localhost:5181/api/city/Auth/me \
-  -H 'X-User-Id: user-123' \
+  -H 'X-User-Id: citizen-001' \
   -H 'X-User-Role: citizen'
 ```
 
-In the Development environment, the OpenAPI document is available at `/openapi/v1.json`.
+Example response:
 
-## Project layout
-
-```text
-Controllers/    HTTP endpoints
-Services/       Application logic
-Repositories/   Data-access operations
-Data/           Entity Framework DbContext
-Models/         User and civil-report domain entities
-DTOs/           Request and response data contracts
-MiddleWares/    Gateway user-context middleware
-Migrations/     Entity Framework database migrations
+```json
+{
+  "message": null,
+  "data": {
+    "id": "citizen-001",
+    "role": "citizen",
+    "firstName": "Ada",
+    "lastName": "Lovelace"
+  },
+  "timestamp": "2026-01-01T00:00:00Z"
+}
 ```
 
-## Database model
+## Architecture
 
-The database contains users, civil reports, report images, report comments, and report-status history. `CivilReport` supports a title, description, geographic coordinates, optional address, status, images, comments, and status changes. These entities are ready for future endpoints but are not yet exposed through the API.
+```text
+Client
+  │
+  ▼
+Authentication gateway ── adds X-User-* headers
+  │
+  ▼
+FixMyCity API
+  ├── Middleware: builds the current-user context
+  ├── Controllers: HTTP endpoints
+  ├── Services: application logic
+  ├── Repositories: data access
+  └── Entity Framework Core
+        │
+        ▼
+    SQL Server
+```
 
-## Development notes
+## Domain model
+
+The current database schema includes the following entities:
+
+| Entity | Purpose |
+| --- | --- |
+| `User` | A platform user supplied by the authentication gateway. |
+| `CivilReport` | A civic issue with title, description, location, address, and status. |
+| `ReportImage` | An image or video associated with a report. |
+| `ReportComment` | A comment left on a report by a user. |
+| `ReportStatusHistory` | An audit trail of status changes. |
+
+Reports support the following statuses: `IN_PROGRESS`, `UNDER_REVIEW`, `RESOLVED`, and `REJECTED`.
+
+## Configuration
+
+The default connection string is configured for the development Compose database:
+
+```text
+Server=localhost,14333;Database=fixmycity;User Id=sa;Password=FixMyCity!123;Encrypt=False;TrustServerCertificate=True
+```
+
+For another database, override it with the `ConnectionStrings__Default` environment variable:
+
+```bash
+ConnectionStrings__Default='Server=localhost,14333;Database=fixmycity;User Id=sa;Password=<your-password>;Encrypt=False;TrustServerCertificate=True' dotnet run
+```
+
+For a real deployment, provide database credentials through a secret manager or deployment environment variables rather than committing them to source control.
+
+## Project structure
+
+```text
+Controllers/     HTTP endpoints
+Data/            Entity Framework DbContext
+DTOs/            API request and response contracts
+Enums/           Shared domain constants
+MiddleWares/     Gateway user-context middleware
+Migrations/      Entity Framework database migrations
+Models/          Domain entities
+Repositories/    Database queries and commands
+Security/        Current-request user context
+Services/        Application logic
+```
+
+## Development
+
+Build the project:
 
 ```bash
 dotnet build
 ```
 
-There is no automated test project in the repository yet. When adding endpoints, include tests and ensure a gateway-authenticated request path is covered.
+The repository does not currently contain an automated test project. New functionality should include automated coverage, particularly for gateway-authenticated request flows and report authorization.
+
+## Roadmap
+
+- [ ] Create, list, and view civic reports
+- [ ] Upload report images and videos
+- [ ] Add comments and status updates
+- [ ] Apply role-based authorization for municipal staff
+- [ ] Add automated tests and CI validation
 
 ## Contributing
 
-1. Create a branch.
-2. Make a focused change.
-3. Run `dotnet build` and any relevant tests.
-4. Open a pull request that explains the change and its verification.
+1. Create a branch from `main`.
+2. Keep the change focused and follow the existing project structure.
+3. Run `dotnet build` and relevant tests before opening a pull request.
+4. Describe the change and how you verified it in the pull request.
 
 ## License
 
